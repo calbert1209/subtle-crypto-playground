@@ -1,4 +1,4 @@
-import { AES_PARAMS, ALGO_NAMES, ECDH_PARAMS } from "./constants.js";
+import { AES_PARAMS, ALGO_NAMES, ECDH_PARAMS } from "../utilities/constants.js";
 
 export class Aes {
   #textCoding;

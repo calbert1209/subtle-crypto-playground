@@ -1,9 +1,9 @@
 // cSpell:ignore Oeap, oaep
 
-import { TextCoding } from "./text-coding.js";
-import { Utils } from "./utils.js";
-import { Ecdh } from "./ecdh.js";
-import { Aes } from "./aes.js";
+import { TextCoding } from "../utilities/text-coding.js";
+import { Utils } from "../utilities/index.js";
+import { Ecdh } from "../algorithms/ecdh.js";
+import { Aes } from "../algorithms/aes.js";
 
 export async function ecdhRoundTrip() {
   console.log(

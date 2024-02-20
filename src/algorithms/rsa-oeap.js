@@ -1,6 +1,6 @@
 // cSpell:ignore Oeap, oaep
 
-import { ALGO_NAMES } from './constants.js';
+import { ALGO_NAMES } from '../utilities/constants.js';
 
 export class RsaOeap {
   #textCoding;

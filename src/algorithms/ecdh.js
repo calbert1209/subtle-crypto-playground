@@ -1,4 +1,4 @@
-import { ECDH_PARAMS, AES_PARAMS } from "./constants.js";
+import { ECDH_PARAMS, AES_PARAMS } from "../utilities/constants.js";
 
 export class Ecdh {
   #ecdhKey;

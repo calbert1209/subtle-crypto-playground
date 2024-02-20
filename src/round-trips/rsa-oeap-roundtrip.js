@@ -1,8 +1,8 @@
 // cSpell:ignore Oeap, oaep
 
-import { TextCoding } from "./text-coding.js";
-import { Utils } from "./utils.js";
-import { RsaOeap } from "./rsa-oeap.js";
+import { TextCoding } from "../utilities/text-coding.js";
+import { Utils } from "../utilities/index.js";
+import { RsaOeap } from "../algorithms/rsa-oeap.js";
 
 export async function rsaOeapRoundtrip() {
   console.log(

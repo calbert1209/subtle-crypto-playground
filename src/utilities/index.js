@@ -47,12 +47,21 @@ export class Utils {
     console.log(lines.join("\n"));
   }
 
+  static paginate(text, chars) {
+    const pages = [];
+    for (let i = 0; i < text.length; i += chars) {
+      pages.push(text.slice(i, i + chars));
+    }
+    return pages;
+  }
+
   static logPgpLikeResults(ct, iv, k, keyIv) {
     const lines = [
       "::: encrypted :::",
-      `ct: ${Utils.toHexString(ct)}`,
-      `iv: ${Utils.toHexString(iv)}`,
-      `key: ${Utils.toHexString(k)}`,
+      `ct:    ${Utils.toHexString(ct)}`,
+      `iv:    ${Utils.toHexString(iv)}`,
+      '\n',
+      `key:   ${Utils.paginate(Utils.toHexString(k), 48).join("\n       ")}`,
       `keyIv: ${Utils.toHexString(keyIv)}`,
     ];
     console.log(lines.join("\n"));

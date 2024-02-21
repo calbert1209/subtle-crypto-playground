@@ -14,10 +14,10 @@ export async function pgpLikeRoundtrip() {
 
   const tc = new TextCoding();
   const myEcdh = await Ecdh.create(new Aes(tc));
-  await Utils.logECDHKey("mine: ", myEcdh.publicKey);
+  await Utils.logECDHKey("mine key: ", myEcdh.publicKey);
 
-  const theirEcdh = await Ecdh.create(tc);
-  await Utils.logECDHKey("theirs: ", theirEcdh.publicKey);
+  const theirEcdh = await Ecdh.create(new Aes(tc));
+  await Utils.logECDHKey("their key: ", theirEcdh.publicKey);
 
   const aes = new Aes(tc);
   const aesCtrKey = await aes.generateKey();
@@ -29,4 +29,12 @@ export async function pgpLikeRoundtrip() {
     keyAsBuffer
   );
   Utils.logPgpLikeResults(cipherText, iv, encryptedKey, keyIv);
+
+  const decryptedKey = await theirEcdh.decrypt(myEcdh.publicKey, keyIv, encryptedKey, true);
+  console.log("::: decrypt key :::\n", decryptedKey);
+  const importedKey = await aes.importJwtKey(tc.toArrayBuffer(decryptedKey));
+  console.log("aes key:", importedKey);
+
+  const decryptedText = await aes.decrypt(importedKey, iv, cipherText);
+  console.log("::: decrypt cipher text :::\n", decryptedText);
 }

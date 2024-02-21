@@ -1,5 +1,5 @@
 {
-  "name": "cryptography",
+  "name": "cryptography-samples",
   "version": "1.0.0",
   "description": "examples of common cryptographic \"idioms\" (probably not using that word correctly...😅🙇🏼‍♂️)",
   "main": "index.js",

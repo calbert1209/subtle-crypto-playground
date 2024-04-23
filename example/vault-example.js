@@ -1,65 +1,48 @@
 import { TextCoding } from "./utilities/text-coding.js";
 import { Utils } from "./utilities/index.js";
-
-/*
-Get some key material to use as input to the deriveKey method.
-The key material is a password supplied by the user.
-*/
-function getKeyMaterial() {
-  const password = window.prompt("Enter your password");
-  const tc = new TextCoding();
-  return window.crypto.subtle.importKey(
-    "raw",
-    tc.toArrayBuffer(password),
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits", "deriveKey"],
-  );
-}
-
-/*
-Given some key material and some random salt
-derive an AES-KW key using PBKDF2.
-*/
-function getKey(keyMaterial, salt) {
-  return window.crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: 100000,
-      hash: "SHA-256",
-    },
-    keyMaterial,
-    { name: "AES-KW", length: 256 },
-    true,
-    ["wrapKey", "unwrapKey"],
-  );
-}
+import { AesKw } from "./algorithms/aes-kw.js";
+import { ALGO_NAMES, KEY_USAGE } from "./utilities/constants.js";
 
 /*
 Wrap the given key.
 */
-async function wrapCryptoKey(keyToWrap) {
+async function wrapCryptoKey(aesKw, keyToWrap) {
   // get the key encryption key
-  const keyMaterial = await getKeyMaterial();
-  const salt = window.crypto.getRandomValues(new Uint8Array(16));
-  const wrappingKey = await getKey(keyMaterial, salt);
-
-  return window.crypto.subtle.wrapKey("raw", keyToWrap, wrappingKey, "AES-KW");
+  const password = window.prompt("Enter your password");
+  return aesKw.wrapKey(keyToWrap, password);
 }
 
 /*
 Generate an encrypt/decrypt secret key,
 then wrap it.
 */
-window.crypto.subtle
-  .generateKey(
+(async function main() {
+  const secret = window.prompt("Enter your secret");
+  const password = window.prompt("Enter your password");
+  const tc = new TextCoding();
+  const keyToWrap = await window.crypto.subtle.generateKey(
     {
-      name: "AES-GCM",
+      name: ALGO_NAMES.AES_GCM,
       length: 256,
     },
     true,
-    ["encrypt", "decrypt"],
-  )
-  .then((secretKey) => wrapCryptoKey(secretKey))
-  .then((wrappedKey) => console.log(Utils.toHexString(wrappedKey)));
+    [KEY_USAGE.encrypt, KEY_USAGE.decrypt]
+  );
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const cipherText = await window.crypto.subtle.encrypt({name: ALGO_NAMES.AES_GCM, iv}, keyToWrap, tc.toArrayBuffer(secret));
+  const cipherObject = {cipherText: Utils.toHexString(cipherText), iv: Utils.toHexString(iv)};
+
+  console.log("%c ::: encrypted secret ::: \n", 'background-color: red;color:white;', cipherObject);
+
+  await Utils.logAESKey("keyToWrap",keyToWrap)
+  const aesKw = new AesKw(tc);
+  const {wrappedKey, wrappingKey} = await aesKw.wrapKey(keyToWrap, password);
+  console.log("%c ::: wrapped key ::: \n", "background-color: blue;color:white;", Utils.toHexString(wrappedKey));
+
+  await Utils.logAESKey("wrappingKey",wrappingKey);
+  const unwrapKey = await aesKw.unwrapKey(wrappedKey, wrappingKey);
+  await Utils.logAESKey("unwrapKey",unwrapKey);
+
+  const decrypted = await window.crypto.subtle.decrypt({name: ALGO_NAMES.AES_GCM, iv}, unwrapKey, cipherText);
+  console.log("%c ::: wrapped key ::: \n", "background-color: green;color:white;", tc.fromArrayBuffer(decrypted));
+})();

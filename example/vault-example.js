@@ -41,8 +41,8 @@ then wrap it.
 
   await Utils.logAESKey("wrappingKey",wrappingKey);
   const unwrapKey = await aesKw.unwrapKey(wrappedKey, wrappingKey);
-  await Utils.logAESKey("unwrapKey",unwrapKey);
+  await Utils.logAESKey("unwrappedKey",unwrapKey);
 
   const decrypted = await window.crypto.subtle.decrypt({name: ALGO_NAMES.AES_GCM, iv}, unwrapKey, cipherText);
-  console.log("%c ::: wrapped key ::: \n", "background-color: green;color:white;", tc.fromArrayBuffer(decrypted));
+  console.log("%c ::: decrypted text ::: \n", "background-color: green;color:white;", tc.fromArrayBuffer(decrypted));
 })();

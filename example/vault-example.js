@@ -29,20 +29,43 @@ then wrap it.
     [KEY_USAGE.encrypt, KEY_USAGE.decrypt]
   );
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
-  const cipherText = await window.crypto.subtle.encrypt({name: ALGO_NAMES.AES_GCM, iv}, keyToWrap, tc.toArrayBuffer(secret));
-  const cipherObject = {cipherText: Utils.toHexString(cipherText), iv: Utils.toHexString(iv)};
+  const cipherText = await window.crypto.subtle.encrypt(
+    { name: ALGO_NAMES.AES_GCM, iv },
+    keyToWrap,
+    tc.toArrayBuffer(secret)
+  );
+  const cipherObject = {
+    cipherText: Utils.toHexString(cipherText),
+    iv: Utils.toHexString(iv),
+  };
 
-  console.log("%c ::: encrypted secret ::: \n", 'background-color: red;color:white;', cipherObject);
+  console.log(
+    "%c ::: encrypted secret ::: \n",
+    "background-color: red;color:white;",
+    cipherObject
+  );
 
-  await Utils.logAESKey("keyToWrap",keyToWrap)
+  await Utils.logAESKey("keyToWrap", keyToWrap);
   const aesKw = new AesKw(tc);
-  const {wrappedKey, wrappingKey} = await aesKw.wrapKey(keyToWrap, password);
-  console.log("%c ::: wrapped key ::: \n", "background-color: blue;color:white;", Utils.toHexString(wrappedKey));
+  const { wrappedKey, wrappingKey } = await aesKw.wrapKey(keyToWrap, password);
+  console.log(
+    "%c ::: wrapped key ::: \n",
+    "background-color: blue;color:white;",
+    Utils.toHexString(wrappedKey)
+  );
 
-  await Utils.logAESKey("wrappingKey",wrappingKey);
+  await Utils.logAESKey("wrappingKey", wrappingKey);
   const unwrapKey = await aesKw.unwrapKey(wrappedKey, wrappingKey);
-  await Utils.logAESKey("unwrappedKey",unwrapKey);
+  await Utils.logAESKey("unwrappedKey", unwrapKey);
 
-  const decrypted = await window.crypto.subtle.decrypt({name: ALGO_NAMES.AES_GCM, iv}, unwrapKey, cipherText);
-  console.log("%c ::: decrypted text ::: \n", "background-color: green;color:white;", tc.fromArrayBuffer(decrypted));
+  const decrypted = await window.crypto.subtle.decrypt(
+    { name: ALGO_NAMES.AES_GCM, iv },
+    unwrapKey,
+    cipherText
+  );
+  console.log(
+    "%c ::: decrypted text ::: \n",
+    "background-color: green;color:white;",
+    tc.fromArrayBuffer(decrypted)
+  );
 })();

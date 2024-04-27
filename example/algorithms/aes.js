@@ -35,7 +35,7 @@ export class Aes {
     );
   }
 
-  async deriveKeyFromPassword(password) {
+  async deriveKeyFromPassword(password, salt) {
     const encodedBuffer = this.#textCoding.toArrayBuffer(password);
     const keyMaterial = await window.crypto.subtle.importKey(
       KEY_FORMAT.raw,
@@ -44,7 +44,7 @@ export class Aes {
       false,
       [KEY_USAGE.deriveBits, KEY_USAGE.deriveKey]
     );
-    const salt = window.crypto.getRandomValues(new Uint8Array(16));
+    salt ??= window.crypto.getRandomValues(new Uint8Array(16));
     const key = await window.crypto.subtle.deriveKey(
       {
         name: ALGO_NAMES.PBKDF2,

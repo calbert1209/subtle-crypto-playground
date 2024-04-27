@@ -1,7 +1,8 @@
 import { TextCoding } from "./utilities/text-coding.js";
 import { Utils } from "./utilities/index.js";
 import { AesKw } from "./algorithms/aes-kw.js";
-import { ALGO_NAMES, KEY_USAGE, KEY_FORMAT } from "./utilities/constants.js";
+import { Aes } from "./algorithms/aes.js";
+import { ALGO_NAMES, KEY_USAGE } from "./utilities/constants.js";
 
 /*
 Wrap the given key.
@@ -57,26 +58,12 @@ then wrap it.
   );
 
   // create vault key from password
-  const vKeyMaterial = await window.crypto.subtle.importKey(
-    KEY_FORMAT.raw,
-    tc.toArrayBuffer(password),
-    { name: ALGO_NAMES.PBKDF2 },
-    false,
-    [KEY_USAGE.deriveBits, KEY_USAGE.deriveKey]
+  const aes = new Aes(tc);
+  const { salt: vKeySalt, key: vKey } = await aes.deriveKeyFromPassword(
+    password
   );
-  const vKeySalt = window.crypto.getRandomValues(new Uint8Array(16));
-  const vKey = await window.crypto.subtle.deriveKey(
-    {
-      name: ALGO_NAMES.PBKDF2,
-      salt: vKeySalt,
-      iterations: 100_000,
-      hash: ALGO_NAMES.SHA_256,
-    },
-    vKeyMaterial,
-    { name: "AES-GCM", length: 256 },
-    true,
-    ["encrypt", "decrypt"]
-  );
+
+  // encrypt vault
   const cipherJson = JSON.stringify({ entries: [cipherObject] });
   const vIv = window.crypto.getRandomValues(new Uint8Array(12));
   const vCipherText = await window.crypto.subtle.encrypt(

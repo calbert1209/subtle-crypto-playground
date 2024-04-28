@@ -1,7 +1,7 @@
 export class Utils {
   static toHexString(buffer) {
     return Array.from(new Uint8Array(buffer))
-      .map((n) => n.toString("16"))
+      .map((n) => n.toString("16").padStart(2, "0"))
       .join("");
   }
 
@@ -60,7 +60,7 @@ export class Utils {
       "::: encrypted :::",
       `ct:    ${Utils.toHexString(ct)}`,
       `iv:    ${Utils.toHexString(iv)}`,
-      '\n',
+      "\n",
       `key:   ${Utils.paginate(Utils.toHexString(k), 48).join("\n       ")}`,
       `keyIv: ${Utils.toHexString(keyIv)}`,
     ];

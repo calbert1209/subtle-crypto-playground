@@ -1,4 +1,10 @@
-import { AES_PARAMS, ALGO_NAMES, ECDH_PARAMS } from "../utilities/constants.js";
+import {
+  AES_PARAMS,
+  ALGO_NAMES,
+  ECDH_PARAMS,
+  KEY_FORMAT,
+  KEY_USAGE,
+} from "../utilities/constants.js";
 
 export class Aes {
   #textCoding;
@@ -14,7 +20,7 @@ export class Aes {
     };
   }
 
-  #deriveKey(ownPrivateKey, otherPublicKey) {
+  #deriveKeyFromEcdhKeys(ownPrivateKey, otherPublicKey) {
     const algo = {
       ...ECDH_PARAMS,
       public: otherPublicKey,
@@ -27,6 +33,32 @@ export class Aes {
       true,
       ["encrypt", "decrypt"]
     );
+  }
+
+  async deriveKeyFromPassword(password, salt) {
+    const encodedBuffer = this.#textCoding.toArrayBuffer(password);
+    const keyMaterial = await window.crypto.subtle.importKey(
+      KEY_FORMAT.raw,
+      encodedBuffer,
+      { name: ALGO_NAMES.PBKDF2 },
+      false,
+      [KEY_USAGE.deriveBits, KEY_USAGE.deriveKey]
+    );
+    salt ??= window.crypto.getRandomValues(new Uint8Array(16));
+    const key = await window.crypto.subtle.deriveKey(
+      {
+        name: ALGO_NAMES.PBKDF2,
+        salt,
+        iterations: 100_000,
+        hash: ALGO_NAMES.SHA_256,
+      },
+      keyMaterial,
+      { name: ALGO_NAMES.AES_GCM, length: 256 },
+      true,
+      [KEY_USAGE.encrypt, KEY_USAGE.decrypt]
+    );
+
+    return { key, salt };
   }
 
   generateKey() {
@@ -106,7 +138,10 @@ export class Aes {
    * @returns Promise<{cipherText: string, iv: Uint8Array}>
    */
   async encryptWithEcdh(privateKey, otherPublicKey, plaintext) {
-    const aesKey = await this.#deriveKey(privateKey, otherPublicKey);
+    const aesKey = await this.#deriveKeyFromEcdhKeys(
+      privateKey,
+      otherPublicKey
+    );
     return this.encrypt(aesKey, plaintext);
   }
 
@@ -120,7 +155,11 @@ export class Aes {
    * @returns Promise<ArrayBuffer | string>
    */
   async decryptWithEcdh(privateKey, otherPublicKey, iv, cipherText, asBuffer) {
-    const aesKey = await this.#deriveKey(privateKey, otherPublicKey, asBuffer);
+    const aesKey = await this.#deriveKeyFromEcdhKeys(
+      privateKey,
+      otherPublicKey,
+      asBuffer
+    );
     return this.decrypt(aesKey, iv, cipherText);
   }
 }
